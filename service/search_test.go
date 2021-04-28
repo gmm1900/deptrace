@@ -29,14 +29,16 @@ func TestSearchPath(t *testing.T) {
 	})
 
 	// exact version search
-	dependencyPaths := tree.SearchPath("m3@v0.3")
+	versionedModules, dependencyPaths := tree.SearchPath("m3@v0.3")
+	assert.Equal(t, []VersionedModule{ {"m3", "v0.3"} }, versionedModules)
 	assert.Equal(t, []DependencyPath{
 		{ "m1@v0.1", "m3@v0.3" }, // path 1
 		{ "m1@v0.1", "m2@v0.2", "m3@v0.3" }, // path 2
 	}, dependencyPaths)
 
 	// arbitrary version search
-	dependencyPaths = tree.SearchPath("m3")
+	versionedModules, dependencyPaths = tree.SearchPath("m3")
+	assert.Equal(t, []VersionedModule{ {"m3", "v0.3"}, {"m3", "v0.3.1"} }, versionedModules)
 	assert.Equal(t, []DependencyPath{
 		{ "m1@v0.1", "m3@v0.3" },
 		{ "m1@v0.1", "m2@v0.2", "m3@v0.3" },

@@ -19,20 +19,20 @@ func (p *DependencyPath) Print() {
 	}
 }
 
-func (t *AnalyzedTree) SearchPath(versionedModuleStr string) []DependencyPath {
+func (t *AnalyzedTree) SearchPath(versionedModuleStr string) ([]VersionedModule, []DependencyPath) {
 	versionedModule, err := parseVersionedModule(versionedModuleStr)
 	if err != nil {
 		log.Fatalf("invalid versioned module: %v", versionedModuleStr)
 	}
 	nodesMap, found := t.SearchMap[versionedModule.Module]
 	if !found {
-		return nil
+		return nil, nil
 	}
 	var nodeList []*Node
 	if versionedModule.Version != "" {
 		node, found := nodesMap[versionedModule.Version]
 		if !found {
-			return nil
+			return nil, nil
 		}
 		nodeList = append(nodeList, node)
 	} else {
@@ -41,13 +41,18 @@ func (t *AnalyzedTree) SearchPath(versionedModuleStr string) []DependencyPath {
 		}
 	}
 
+	var versionedModules []VersionedModule
+	for i := range nodeList {
+		versionedModules = append(versionedModules, nodeList[i].VersionedModule)
+	}
+
 	var result []DependencyPath
 	for _, node := range nodeList {
 		var perNodeResult []DependencyPath
 		t.searchNode(node, DependencyPath{}, &perNodeResult)
 		result = append(result, perNodeResult...)
 	}
-	return result
+	return versionedModules, result
 }
 
 // searchNode recursively trace all the paths from a node, up to root or up to when there is no more upstream
